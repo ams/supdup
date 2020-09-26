@@ -2,4 +2,4 @@ os:
   - linux
   - osx
 language: c
-script: make
+script: autoreconf -fvi && ./configure && make
