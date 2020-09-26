@@ -261,6 +261,7 @@ init_chaos_dns()
 int 
 dns_addrs_of_name(u_char *namestr, u_short *addrs, int addrs_len)
 {
+#ifdef HAVE_DECL_NS_C_CHAOS
   char a_dom[NS_MAXDNAME];
   int a_addr;
   char qstring[NS_MAXDNAME];
@@ -312,6 +313,9 @@ dns_addrs_of_name(u_char *namestr, u_short *addrs, int addrs_len)
     } 
   }
   return ix;
+#endif
+
+  return -1;
 }
 
 int
