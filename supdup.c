@@ -237,25 +237,23 @@ struct __res_state chres;
 void
 init_chaos_dns()
 {
-  res_state statp = &chres;
-
   // initialize resolver library
-  if (res_ninit(statp) < 0) {
-    fprintf(stderr,"Can't init statp\n");
+  if (res_init() < 0) {
+    fprintf(stderr,"res_init failed\n");
     exit(1);
   }
   // make sure to make recursive requests
-  statp->options |= RES_RECURSE;
+  _res.options |= RES_RECURSE;
   // change nameserver
-  if (inet_aton(CHAOS_DNS_SERVER, &statp->nsaddr_list[0].sin_addr) < 0) {
+  if (inet_aton(CHAOS_DNS_SERVER, &_res.nsaddr_list[0].sin_addr) < 0) {
     perror("inet_aton (chaos_dns_server does not parse)");
     exit(1);
   } else {
-    statp->nsaddr_list[0].sin_family = AF_INET;
-    statp->nsaddr_list[0].sin_port = htons(53);
-    statp->nscount = 1;
+    _res.nsaddr_list[0].sin_family = AF_INET;
+    _res.nsaddr_list[0].sin_port = htons(53);
+    _res.nscount = 1;
   }
-  // what about the timeout? RES_TIMEOUT=5s, statp->retrans (RES_MAXRETRANS=30 s? ms?), ->retry (RES_DFLRETRY=2, _MAXRETRY=5)
+  // what about the timeout? RES_TIMEOUT=5s, _res->retrans (RES_MAXRETRANS=30 s? ms?), ->retry (RES_DFLRETRY=2, _MAXRETRY=5)
 }
 
 // given a domain name (including ending period!) and addr of a u_short vector,
@@ -263,7 +261,6 @@ init_chaos_dns()
 int 
 dns_addrs_of_name(u_char *namestr, u_short *addrs, int addrs_len)
 {
-  res_state statp = &chres;
   char a_dom[NS_MAXDNAME];
   int a_addr;
   char qstring[NS_MAXDNAME];
@@ -275,13 +272,13 @@ dns_addrs_of_name(u_char *namestr, u_short *addrs, int addrs_len)
 
   sprintf(qstring,"%s.", namestr);
 
-  if ((anslen = res_nquery(statp, qstring, ns_c_chaos, ns_t_a, (u_char *)&answer, sizeof(answer))) < 0) {
-    // fprintf(stderr,"DNS: addrs of %s failed, errcode %d: %s\n", qstring, statp->res_h_errno, hstrerror(statp->res_h_errno));
+  if ((anslen = res_nquery(_res, qstring, ns_c_chaos, ns_t_a, (u_char *)&answer, sizeof(answer))) < 0) {
+    // fprintf(stderr,"DNS: addrs of %s failed, errcode %d: %s\n", qstring, _res->res_h_errno, hstrerror(_res->res_h_errno));
     return -1;
   }
 
   if (ns_initparse((u_char *)&answer, anslen, &m) < 0) {
-    fprintf(stderr,"ns_init_parse failure code %d",statp->res_h_errno);
+    fprintf(stderr,"ns_init_parse failure code %d",_res->res_h_errno);
     return -1;
   }
 
